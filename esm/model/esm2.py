@@ -76,8 +76,8 @@ class ESM2(nn.Module):
 
     def forward(self, tokens, repr_layers=[], need_head_weights=False, return_contacts=False):
         if return_contacts:
-            need_head_weights = True
-
+            need_head_weights = True        
+            
         assert tokens.ndim == 2
         padding_mask = tokens.eq(self.padding_idx)  # B, T
 
@@ -141,7 +141,68 @@ class ESM2(nn.Module):
                 contacts = self.contact_head(tokens, attentions)
                 result["contacts"] = contacts
 
-        return result
-
+        return result      
+      
     def predict_contacts(self, tokens):
         return self(tokens, return_contacts=True)["contacts"]
+      
+    def mh_sampling(self, tokens, repr_layers=[], need_head_weights=False, return_contacts=False):
+        bsz, T = tokens.size()
+        
+        for e in range(100):
+            idx = torch.tensor(list(range(1, T)))
+            perm_idx = torch.randperm(len(idx))
+            rand_idx = idx[perm_idx]
+            for _i in rand_idx:
+                E_old = self.get_energy(tokens)
+                w_0 = tokens[:, _i]
+                      
+                tokens_prime, w_n = self.sample_mlm(tokens, _i)
+
+                q_xp_x, q_x_xp = self.get_proposal_prob(tokens, _i, w_0, w_n)
+                
+                E_new = self.get_energy(tokens_prime)
+                
+                accept_prob = (torch.exp(- E_new) * q_x_xp / torch.exp(- E_old) / q_xp_x).clamp(max=1)
+
+                u = torch.rand(accept_prob.size()).to(accept_prob)
+                
+                accept_cond = (u <= accept_prob).squeeze(1)
+                tokens[accept_cond] = tokens_prime[accept_cond]
+                
+            if e > 5:
+                print('Epoch:', e)
+                for seq in tokens:
+                    decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
+                    print(decoded_seq)
+            
+    def get_energy(self, tokens):
+        bsz, T = tokens.size()
+        energy = 0
+        for _i in range(T):
+            new_tokens = tokens.clone()
+            new_tokens[:, _i] = self.mask_idx
+            raw_logits = self.forward(tokens)['logits'].log_softmax(-1)[:, _i]
+            one_energy = torch.gather(raw_logits, 1, tokens[:, _i].unsqueeze(1))
+            energy += one_energy
+        return energy
+    
+    def get_proposal_prob(self, tokens, n, w_0, w_n):
+        tokens = tokens.clone()
+        tokens[:, n] = self.mask_idx
+        mask_prob = self.forward(tokens)['logits'].softmax(-1)[:, n]
+        q_xp_x = mask_prob.gather(1, w_n.unsqueeze(1))
+        q_x_xp = mask_prob.gather(1, w_0.unsqueeze(1))
+        return q_xp_x, q_x_xp
+            
+
+    def sample_mlm(self, tokens, n, tmp=1):
+        from torch.distributions import Categorical
+        
+        tokens = tokens.clone()
+        tokens[:, n] = self.mask_idx
+        logits = self.forward(tokens)['logits']
+        dist = Categorical(logits=logits / tmp)
+        w_n = dist.sample()[:, n]
+        tokens[:, n] = w_n
+        return tokens, w_n
