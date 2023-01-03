@@ -9,8 +9,14 @@ import torch.nn as nn
 
 import esm
 from esm.modules import ContactPredictionHead, ESM1bLayerNorm, RobertaLMHead, TransformerLayer
+import sys
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--temperature', type=float, default=1.0)
+args = parser.parse_args()
 
+    
 class ESM2(nn.Module):
     def __init__(
         self,
@@ -157,7 +163,7 @@ class ESM2(nn.Module):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
                       
-                tokens_prime, w_n = self.sample_mlm(tokens, _i)
+                tokens_prime, w_n = self.sample_mlm(tokens, _i, tmp=args.temperature)
 
                 q_xp_x, q_x_xp = self.get_proposal_prob(tokens, _i, w_0, w_n)
                 
@@ -196,7 +202,7 @@ class ESM2(nn.Module):
         return q_xp_x, q_x_xp
             
 
-    def sample_mlm(self, tokens, n, tmp=1.3):
+    def sample_mlm(self, tokens, n, tmp):
         from torch.distributions import Categorical
         
         tokens = tokens.clone()
