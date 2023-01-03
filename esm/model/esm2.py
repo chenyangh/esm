@@ -196,7 +196,7 @@ class ESM2(nn.Module):
         return q_xp_x, q_x_xp
             
 
-    def sample_mlm(self, tokens, n, tmp=1):
+    def sample_mlm(self, tokens, n, tmp=1.3):
         from torch.distributions import Categorical
         
         tokens = tokens.clone()
