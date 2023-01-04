@@ -160,6 +160,9 @@ class ESM2(nn.Module):
         bsz, T = tokens.size()
         
         for e in range(100):
+            print('Epoch:', e)
+            log_file.write("Epoch: "+ str(e) + '\n')
+            log_file.flush()
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
             rand_idx = idx[perm_idx]
@@ -181,12 +184,12 @@ class ESM2(nn.Module):
                 tokens[accept_cond] = tokens_prime[accept_cond]
                 
             # if e > 5:
-            print('Epoch:', e)
-            log_file.write("Epoch: "+ str(e) + '\n')
+            
             for seq in tokens:
                 decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
                 print(decoded_seq)
                 log_file.write(decoded_seq + '\n')
+                log_file.flush()
         
     def get_energy(self, tokens):
         bsz, T = tokens.size()
