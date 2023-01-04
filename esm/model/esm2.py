@@ -180,14 +180,14 @@ class ESM2(nn.Module):
                 accept_cond = (u <= accept_prob).squeeze(1)
                 tokens[accept_cond] = tokens_prime[accept_cond]
                 
-            if e > 5:
-                print('Epoch:', e)
-                log_file.write("Epoch: "+ str(e) + '\n')
-                for seq in tokens:
-                    decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
-                    print(decoded_seq)
-                    log_file.write(decoded_seq + '\n')
-            
+            # if e > 5:
+            print('Epoch:', e)
+            log_file.write("Epoch: "+ str(e) + '\n')
+            for seq in tokens:
+                decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
+                print(decoded_seq)
+                log_file.write(decoded_seq + '\n')
+        
     def get_energy(self, tokens):
         bsz, T = tokens.size()
         energy = 0
