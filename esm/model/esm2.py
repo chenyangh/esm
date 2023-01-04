@@ -11,12 +11,16 @@ import esm
 from esm.modules import ContactPredictionHead, ESM1bLayerNorm, RobertaLMHead, TransformerLayer
 import sys
 import argparse
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--temperature', type=float, default=1.0)
+parser.add_argument('--output-file', type=str, default=None)
+
 args = parser.parse_args()
 
     
+log_file = open(args.output_file, 'w')
 class ESM2(nn.Module):
     def __init__(
         self,
@@ -158,8 +162,8 @@ class ESM2(nn.Module):
         for e in range(100):
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
-            rand_idx = idx[perm_idx]
-            for _i in rand_idx:
+            rand_idx = idx[perm_idx][:10]
+            for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
                       
@@ -178,9 +182,11 @@ class ESM2(nn.Module):
                 
             if e > 5:
                 print('Epoch:', e)
+                log_file.write("Epoch: "+ str(e) + '\n')
                 for seq in tokens:
                     decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
                     print(decoded_seq)
+                    log_file.write(decoded_seq + '\n')
             
     def get_energy(self, tokens):
         bsz, T = tokens.size()
