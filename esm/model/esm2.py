@@ -162,7 +162,7 @@ class ESM2(nn.Module):
         for e in range(100):
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
-            rand_idx = idx[perm_idx][:10]
+            rand_idx = idx[perm_idx]
             for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
