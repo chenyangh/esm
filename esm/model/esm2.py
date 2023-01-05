@@ -165,7 +165,7 @@ class ESM2(nn.Module):
             log_file.flush()
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
-            rand_idx = idx[perm_idx]
+            rand_idx = idx[perm_idx][:2]
             for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
@@ -182,6 +182,7 @@ class ESM2(nn.Module):
                 
                 accept_cond = (u <= accept_prob).squeeze(1)
                 tokens[accept_cond] = tokens_prime[accept_cond]
+                tokens = tokens.clone()
                 
             # if e > 5:
             
