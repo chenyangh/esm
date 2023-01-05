@@ -159,7 +159,7 @@ class ESM2(nn.Module):
     def mh_sampling(self, tokens, repr_layers=[], need_head_weights=False, return_contacts=False):
         bsz, T = tokens.size()
         
-        log_file.write("Start with: "+ str(e) + '\n')
+        log_file.write("Start with: ")
         log_file.flush()
             
         for seq in tokens:
