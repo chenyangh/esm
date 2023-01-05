@@ -16,7 +16,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument('--temperature', type=float, default=1.0)
 parser.add_argument('--output-file', type=str, default=None)
-parser.add_argument('--down-sample', type=bool, default=None)
+parser.add_argument('--down-sample', type=int, default=None)
 
 
 args = parser.parse_args()
