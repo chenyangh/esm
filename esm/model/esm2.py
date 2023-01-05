@@ -16,6 +16,8 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument('--temperature', type=float, default=1.0)
 parser.add_argument('--output-file', type=str, default=None)
+parser.add_argument('--down-sample', type=bool, default=None)
+
 
 args = parser.parse_args()
 
@@ -174,7 +176,10 @@ class ESM2(nn.Module):
             log_file.flush()
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
-            rand_idx = idx[perm_idx] # [:2]
+            if args.down_sample is not None:
+                rand_idx = idx[perm_idx] # [:2]
+            else:
+                rand_idx = idx[perm_idx][:args.down_sample]
             for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
