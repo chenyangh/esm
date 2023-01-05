@@ -159,6 +159,15 @@ class ESM2(nn.Module):
     def mh_sampling(self, tokens, repr_layers=[], need_head_weights=False, return_contacts=False):
         bsz, T = tokens.size()
         
+        log_file.write("Start with: "+ str(e) + '\n')
+        log_file.flush()
+            
+        for seq in tokens:
+                decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
+                print(decoded_seq)
+                log_file.write(decoded_seq + '\n')
+                log_file.flush()
+                
         for e in range(100):
             print('Epoch:', e)
             log_file.write("Epoch: "+ str(e) + '\n')
@@ -185,7 +194,6 @@ class ESM2(nn.Module):
                 tokens = tokens.clone()
                 
             # if e > 5:
-            
             for seq in tokens:
                 decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
                 print(decoded_seq)
