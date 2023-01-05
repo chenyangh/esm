@@ -164,6 +164,13 @@ class ESM2(nn.Module):
         return self(tokens, return_contacts=True)["contacts"]
       
     def mh_sampling(self, tokens, repr_layers=[], need_head_weights=False, return_contacts=False):
+        def output_tokens(tokens):
+            for seq in tokens:
+                decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
+                print(decoded_seq)
+                log_file.write(decoded_seq + '\n')
+                log_file.flush()
+                
         bsz, T = tokens.size()
         
         log_file.write("Start with: ")
@@ -189,8 +196,13 @@ class ESM2(nn.Module):
             for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
-                      
+                
+                
                 tokens_prime, w_n = self.sample_mlm(tokens, _i, tmp=args.temperature)
+
+                log_file.write("AT Position " + str(_i) + ":")
+                log_file.write(str(w_0) + "->" + str(w_n))
+                
 
                 q_xp_x, q_x_xp = self.get_proposal_prob(tokens, _i, w_0, w_n)
                 
@@ -203,13 +215,9 @@ class ESM2(nn.Module):
                 accept_cond = (u <= accept_prob).squeeze(1)
                 tokens[accept_cond] = tokens_prime[accept_cond]
                 tokens = tokens.clone()
-                
+                output_tokens(tokens )
             # if e > 5:
-            for seq in tokens:
-                decoded_seq = ''.join([self.alphabet.all_toks[_x] for _x in seq])
-                print(decoded_seq)
-                log_file.write(decoded_seq + '\n')
-                log_file.flush()
+            
         
     def get_energy(self, tokens):
         bsz, T = tokens.size()
