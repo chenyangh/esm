@@ -12,14 +12,19 @@ from esm.modules import ContactPredictionHead, ESM1bLayerNorm, RobertaLMHead, Tr
 import sys
 import argparse
 from tqdm import tqdm
+from torch.distributions import Categorical
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--temperature', type=float, default=1.0)
 parser.add_argument('--output-file', type=str, default=None)
 parser.add_argument('--down-sample', type=int, default=None)
+parser.add_argument('--seed', type=int, default=0)
 
 
 args = parser.parse_args()
+
+torch.manual_seed(args.seed)
 
     
 log_file = open(args.output_file, 'w')
@@ -227,7 +232,6 @@ class ESM2(nn.Module):
             
 
     def sample_mlm(self, tokens, n, tmp):
-        from torch.distributions import Categorical
         
         tokens = tokens.clone()
         tokens[:, n] = self.mask_idx
