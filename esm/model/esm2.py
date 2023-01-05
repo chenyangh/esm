@@ -197,12 +197,12 @@ class ESM2(nn.Module):
                 E_old = self.get_energy(tokens)
                 w_0 = tokens[:, _i]
                 
-                
                 tokens_prime, w_n = self.sample_mlm(tokens, _i, tmp=args.temperature)
 
-                log_file.write("AT Position " + str(_i) + ":")
-                log_file.write(str(w_0) + "->" + str(w_n))
-                
+                log_file.write("AT Position " + str(_i) + ": ")
+                log_file.write(str(w_0) + "->" + str(w_n) + '\n')
+                print("AT Position " + str(_i) + ":", end=' ')
+                print(str(w_0) + "->" + str(w_n) )
 
                 q_xp_x, q_x_xp = self.get_proposal_prob(tokens, _i, w_0, w_n)
                 
