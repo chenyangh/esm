@@ -176,9 +176,10 @@ class ESM2(nn.Module):
             log_file.flush()
             idx = torch.tensor(list(range(1, T)))
             perm_idx = torch.randperm(len(idx))
-            if args.down_sample is not None:
+            if args.down_sample is None:
                 rand_idx = idx[perm_idx] # [:2]
             else:
+                # print(args.down_sample, flush=True)
                 rand_idx = idx[perm_idx][:args.down_sample]
             for _i in tqdm(rand_idx):
                 E_old = self.get_energy(tokens)
